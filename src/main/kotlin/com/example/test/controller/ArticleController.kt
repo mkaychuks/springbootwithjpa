@@ -36,15 +36,15 @@ class ArticleController {
         return article
     }
 
-    @PutMapping("/{title}")
-    fun updateArticle(@RequestBody article: Article, @PathVariable title: String): Article {
-        val existingArticle = articles.find { it.title == title } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    @PutMapping("/{slug}")
+    fun updateArticle(@RequestBody article: Article, @PathVariable slug: String): Article {
+        val existingArticle = articles.find { it.slug == slug } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
         existingArticle.content = article.content
         return article
     }
 
-    @DeleteMapping("/{title}")
-    fun deleteArticle(@PathVariable title: String){
-        articles.removeIf { article -> article.title == title }
+    @DeleteMapping("/{slug}")
+    fun deleteArticle(@PathVariable slug: String){
+        articles.removeIf { article -> article.slug == slug }
     }
 }
