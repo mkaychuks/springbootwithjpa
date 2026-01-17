@@ -1,6 +1,7 @@
 package com.example.test.controller
 
-import com.example.test.model.Article
+import com.example.test.entity.Article
+import com.example.test.repository.ArticleRepository
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,37 +15,37 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/v1/articles")
-class ArticleController {
+class ArticleController(
+    val repository: ArticleRepository
+) {
 
-    val articles = mutableListOf<Article>(
-        Article(title = "My Title", content = "My content")
-    )
+
 
     @GetMapping
-    fun articles(): MutableList<Article> {
-        return articles
-    }
+    fun articles(): Iterable<Article> = repository.findAllByOrderByCreatedAtDesc()
 
     @GetMapping("/{slug}")
     fun articles(@PathVariable slug: String): Article {
-        return articles.find { article -> article.slug == slug } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        return repository.findBySlug(slug).orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
     }
 
     @PostMapping
     fun newArticle(@RequestBody article: Article): Article {
-        articles.add(article)
+        article.id = null
+        repository.save(article)
         return article
     }
 
     @PutMapping("/{slug}")
     fun updateArticle(@RequestBody article: Article, @PathVariable slug: String): Article {
-        val existingArticle = articles.find { it.slug == slug } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        val existingArticle = repository.findBySlug(slug).orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
         existingArticle.content = article.content
         return article
     }
 
     @DeleteMapping("/{slug}")
     fun deleteArticle(@PathVariable slug: String){
-        articles.removeIf { article -> article.slug == slug }
+        val existingArticle = repository.findBySlug(slug).orElseThrow { throw ResponseStatusException(HttpStatus.NOT_FOUND) }
+        repository.delete(existingArticle )
     }
 }
